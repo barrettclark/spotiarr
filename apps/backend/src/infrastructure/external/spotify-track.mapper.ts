@@ -29,9 +29,15 @@ export class SpotifyTrackMapper {
       url: a.external_urls?.spotify,
     }));
 
+    // Album artist — use album-level artists when available so all tracks in a
+    // compilation/recital album group under the same folder (e.g. "Canadian Brass"
+    // rather than per-track composers like "Boris Pigovat").
+    const albumArtist = album?.artists?.map((a) => a.name).join(", ");
+
     return {
       name: track.name,
       artist: artistName,
+      albumArtist,
       primaryArtist,
       primaryArtistImage: context?.primaryArtistImage ?? null,
       artists,
