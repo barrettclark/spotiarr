@@ -34,4 +34,7 @@ mkdir -p /downloads
 chown "$PUID:$PGID" /downloads 2>/dev/null || true
 
 echo "🚀 Starting application as $USER_NAME..."
+# Point corepack at the system-wide cache pre-populated during the Docker build
+# so pnpm doesn't try to download itself to the (root-owned) user home dir.
+export COREPACK_HOME=/usr/local/share/corepack
 exec su-exec "$PUID:$PGID" "$@"
