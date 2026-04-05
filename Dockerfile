@@ -31,9 +31,15 @@ RUN pnpm run build
 
 FROM node:22-alpine
 
-# Install pnpm directly via npm (bypasses corepack shim entirely so there
-# is no version-check download at startup when running as a non-root user).
-RUN npm install -g pnpm@10.20.0 && corepack disable
+# Install pnpm: cache it in a system-wide corepack store and create a
+# wrapper at /usr/local/bin/pnpm that sets COREPACK_HOME before invoking
+# the shim, so no network download occurs when running as a non-root user.
+RUN corepack enable && \
+    COREPACK_HOME=/usr/local/share/corepack corepack prepare pnpm@10.20.0 --activate && \
+    chmod -R a+r /usr/local/share/corepack && \
+    printf '#!/bin/sh\nexec env COREPACK_HOME=/usr/local/share/corepack /usr/local/lib/node_modules/corepack/dist/corepack.js pnpm "$@"\n' \
+        > /usr/local/bin/pnpm && \
+    chmod +x /usr/local/bin/pnpm
 
 # Install runtime dependencies
 # Workaround for busybox trigger error in ARM64 QEMU builds
