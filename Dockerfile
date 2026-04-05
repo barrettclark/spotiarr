@@ -47,8 +47,12 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o 
 
 WORKDIR /spotiarr
 
-# Create downloads directory
-RUN mkdir -p /downloads
+# Create downloads directory and a writable config dir for the node user
+RUN mkdir -p /downloads /spotiarr/config && chown node:node /spotiarr/config
+
+# Use /home/node as HOME so corepack and npm can write cache files when
+# running as the non-root node user (su-exec'd by the entrypoint)
+ENV HOME=/home/node
 
 # Copy root configuration
 COPY --chown=node:node --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
