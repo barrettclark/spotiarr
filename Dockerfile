@@ -31,8 +31,11 @@ RUN pnpm run build
 
 FROM node:22-alpine
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
+# Install pnpm globally into a system-wide corepack store so it's available
+# to any user at runtime (the entrypoint su-exec's to a non-root uid).
+ENV COREPACK_HOME=/usr/local/share/corepack
+RUN corepack enable && corepack prepare pnpm@10.20.0 --activate && \
+    chmod -R a+r /usr/local/share/corepack
 
 # Install runtime dependencies
 # Workaround for busybox trigger error in ARM64 QEMU builds
@@ -49,10 +52,6 @@ WORKDIR /spotiarr
 
 # Create downloads directory and a writable config dir for the node user
 RUN mkdir -p /downloads /spotiarr/config && chown node:node /spotiarr/config
-
-# Use /home/node as HOME so corepack and npm can write cache files when
-# running as the non-root node user (su-exec'd by the entrypoint)
-ENV HOME=/home/node
 
 # Copy root configuration
 COPY --chown=node:node --from=builder /spotiarr/package.json /spotiarr/pnpm-workspace.yaml /spotiarr/pnpm-lock.yaml /spotiarr/.npmrc ./
