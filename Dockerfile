@@ -63,6 +63,11 @@ COPY --chown=node:node --from=builder /spotiarr/node_modules ./node_modules
 COPY --chown=node:node --from=builder /spotiarr/apps ./apps
 COPY --chown=node:node --from=builder /spotiarr/packages ./packages
 
+# Prisma writes engine binaries at startup; make those dirs world-writable
+# so they work when PUID != 1000 (the build uid).
+RUN find /spotiarr/node_modules/.pnpm -name "engines" -path "*/@prisma/*" -type d \
+    -exec chmod a+w {} + 2>/dev/null || true
+
 # Default environment variables
 ENV NODE_ENV=production
 ENV REDIS_HOST=redis
