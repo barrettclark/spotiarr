@@ -29,10 +29,11 @@ export class SpotifyTrackMapper {
       url: a.external_urls?.spotify,
     }));
 
-    // Album artist — use album-level artists when available so all tracks in a
-    // compilation/recital album group under the same folder (e.g. "Canadian Brass"
-    // rather than per-track composers like "Boris Pigovat").
-    const albumArtist = album?.artists?.map((a) => a.name).join(", ");
+    // Album artist — use the first album-level artist so all tracks in a
+    // compilation group under one folder (e.g. "Berliner Philharmoniker" rather
+    // than every composer listed on the album). Spotify returns the performing
+    // ensemble first for classical compilations, followed by all the composers.
+    const albumArtist = album?.artists?.[0]?.name;
 
     return {
       name: track.name,
